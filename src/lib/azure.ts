@@ -6,6 +6,7 @@
 //    (uses az login locally, managed identity on Azure, env vars on Vercel)
 
 import { DefaultAzureCredential } from '@azure/identity';
+import https from 'https';
 
 export function getAzureConfig() {
   return {
@@ -80,20 +81,48 @@ export async function callAzureChat(
     temperature: options.temperature ?? 0.8,
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeaders,
-    },
-    body: JSON.stringify(body),
+  const bodyStr = JSON.stringify(body);
+
+  // Use native https module to avoid Next.js fetch patching (causes connect timeouts)
+  const data: any = await new Promise((resolve, reject) => {
+    const parsedUrl = new URL(url);
+    const req = https.request(
+      {
+        hostname: parsedUrl.hostname,
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(bodyStr),
+          ...authHeaders,
+        },
+        timeout: 60000,
+      },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk) => (data += chunk));
+        res.on('end', () => {
+          if (res.statusCode && res.statusCode >= 400) {
+            console.error(`[Azure] ${model} error (${res.statusCode}):`, data);
+            reject(new Error(`Azure API error ${res.statusCode}: ${data}`));
+          } else {
+            try {
+              resolve(JSON.parse(data));
+            } catch {
+              reject(new Error(`Invalid JSON from Azure: ${data.slice(0, 200)}`));
+            }
+          }
+        });
+      }
+    );
+    req.on('error', reject);
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('Azure API request timed out'));
+    });
+    req.write(bodyStr);
+    req.end();
   });
 
-  if (!response.ok) {
-    const errorBody = await response.text();
-    console.error(`[Azure] ${model} error (${response.status}):`, errorBody);
-    throw new Error(`Azure API error ${response.status}: ${errorBody}`);
-  }
-
-  return response.json();
+  return data;
 }
