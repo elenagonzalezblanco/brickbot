@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateDemoModel } from '@/lib/lego-generator';
-
-// ── Azure config (shared with chat route) ──
-function getAzureConfig() {
-  return {
-    endpoint: process.env.AZURE_OPENAI_ENDPOINT || '',
-    apiKey: process.env.AZURE_OPENAI_API_KEY || '',
-    textModel: process.env.AZURE_TEXT_MODEL || 'gpt-5.4',
-    apiVersion: process.env.AZURE_API_VERSION || '2025-01-01-preview',
-  };
-}
+import { getAzureConfig, isAzureConfigured, callAzureChat } from '@/lib/azure';
 
 const MODEL_GEN_PROMPT = `Eres un experto diseñador de modelos LEGO. A partir de la conversación del usuario, genera un modelo LEGO completo.
 
@@ -54,6 +45,7 @@ COLORES DISPONIBLES (usa SOLO estos colorId):
 - 1 = Blue (#0055BF)
 - 2 = Green (#237841)
 - 4 = Red (#C91A09)
+- 6 = Brown (#583927)
 - 14 = Yellow (#F2CD37)
 - 15 = White (#FFFFFF)
 - 25 = Orange (#FE8A18)
@@ -76,38 +68,6 @@ REGLAS:
 - La lista "parts" es el resumen total de todas las piezas.
 - Intenta que el modelo sea reconocible y bonito.`;
 
-async function callAzureForModel(messages: any[], config: ReturnType<typeof getAzureConfig>) {
-  const url = `${config.endpoint}/openai/deployments/${config.textModel}/chat/completions?api-version=${config.apiVersion}`;
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'api-key': config.apiKey,
-    },
-    body: JSON.stringify({
-      messages: [
-        { role: 'system', content: MODEL_GEN_PROMPT },
-        ...messages,
-        {
-          role: 'user',
-          content: 'Ahora genera el modelo LEGO en formato JSON basado en nuestra conversación. Responde SOLO con el JSON.',
-        },
-      ],
-      max_tokens: 4000,
-      temperature: 0.7,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    console.error(`Azure generate-model error (${response.status}):`, errorBody);
-    throw new Error(`Azure API error: ${response.status}`);
-  }
-
-  return response.json();
-}
-
 function buildLDrawFromSteps(name: string, steps: any[]): string {
   const lines: string[] = [
     `0 FILE ${name}.ldr`,
@@ -116,18 +76,15 @@ function buildLDrawFromSteps(name: string, steps: any[]): string {
     `0 Author: BrickBot AI`,
     '',
   ];
-
   for (const step of steps) {
     lines.push('0 STEP');
     lines.push(`0 // Step ${step.stepNumber}: ${step.description}`);
     if (step.bricks && Array.isArray(step.bricks)) {
       for (const b of step.bricks) {
-        // LDraw type 1 line: 1 <color> <x> <y> <z> <matrix 3x3> <part>
         lines.push(`1 ${b.color} ${b.x} ${b.y} ${b.z} 1 0 0 0 1 0 0 0 1 ${b.part}`);
       }
     }
   }
-
   lines.push('0 NOFILE');
   return lines.join('\n');
 }
@@ -147,9 +104,9 @@ export async function POST(request: NextRequest) {
         Array.isArray(m.content) ? m.content.filter((c: any) => c.type === 'text').map((c: any) => c.text).join(' ') : ''))
       .join(' ');
 
-    // If no API key or no messages, fall back to demo
-    if (!config.apiKey || config.apiKey === 'PEGA-AQUI-TU-API-KEY' || !messages || messages.length === 0) {
-      console.log('[BrickBot] No API key or messages, returning demo model');
+    // If Azure not configured or no messages, fall back to demo
+    if (!isAzureConfigured(config) || !messages || messages.length === 0) {
+      console.log('[BrickBot] Azure not configured, returning demo model');
       const model = generateDemoModel(conversationText);
       return NextResponse.json({ model });
     }
@@ -166,7 +123,13 @@ export async function POST(request: NextRequest) {
 
     console.log(`[BrickBot] Generating model from ${textMessages.length} messages...`);
 
-    const data = await callAzureForModel(textMessages, config);
+    const azureMessages = [
+      { role: 'system', content: MODEL_GEN_PROMPT },
+      ...textMessages,
+      { role: 'user', content: 'Ahora genera el modelo LEGO en formato JSON basado en nuestra conversación. Responde SOLO con el JSON.' },
+    ];
+
+    const data = await callAzureChat(azureMessages, config.textModel, config, { temperature: 0.7 });
     const rawContent = data.choices?.[0]?.message?.content || '';
 
     console.log('[BrickBot] Raw AI response length:', rawContent.length);

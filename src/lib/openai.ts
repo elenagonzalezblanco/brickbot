@@ -101,7 +101,7 @@ CONFIGURACIÓN DEL USUARIO:
 
   // Try the real API first, fall back to demo mode for static deploys
   try {
-    const response = await fetch('/api/chat', {
+    const response = await fetch('/api/chat/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: apiMessages }),

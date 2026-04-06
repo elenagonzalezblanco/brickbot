@@ -25,7 +25,7 @@ async function generateModelFromChat(messages: any[]): Promise<any> {
 
   // Try the real API
   try {
-    const response = await fetch('/api/generate-model', {
+    const response = await fetch('/api/generate-model/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages }),
