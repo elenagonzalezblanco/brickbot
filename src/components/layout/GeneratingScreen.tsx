@@ -17,6 +17,12 @@ const loadingMessages = [
 ];
 
 async function generateModelFromChat(messages: any[]): Promise<any> {
+  // Extract conversation text for keyword matching in demo fallback
+  const conversationText = messages
+    .filter((m: any) => m.role === 'user')
+    .map((m: any) => (typeof m.content === 'string' ? m.content : ''))
+    .join(' ');
+
   // Try the real API
   try {
     const response = await fetch('/api/generate-model', {
@@ -33,8 +39,8 @@ async function generateModelFromChat(messages: any[]): Promise<any> {
     // API not available (static deploy) — fall through to demo
   }
 
-  // Fallback to demo
-  return generateDemoModel();
+  // Fallback to demo - pick model based on conversation keywords
+  return generateDemoModel(conversationText);
 }
 
 export default function GeneratingScreen() {

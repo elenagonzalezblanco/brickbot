@@ -43,25 +43,24 @@ Algunas preguntas para afinar el diseño:
   `¡Genial! Con esos detalles ya tengo una buena idea 🎨
 
 Estoy pensando en un diseño con:
-- Base de **8x8 studs** aprox.
-- Colores principales: rojo, blanco y azul
-- Alrededor de **80-120 piezas**
-- Complejidad media, perfecto para construir en 30 min
+- Alrededor de **30-80 piezas**
+- Colores que encajen con tu idea
+- Complejidad media, perfecto para construir en 20-30 min
 
-¿Te parece bien? Si quieres, pulsa **"Generar modelo demo"** en la barra superior para ver un ejemplo de cómo queda el visor 3D con instrucciones paso a paso. 🧊`,
+Cuando quieras, pulsa el botón verde **"Generar modelo 3D"** ⬆️ arriba para que cree tu modelo con instrucciones paso a paso. 🧊`,
 
   `¡Perfecto! Creo que ya tengo suficiente para crear tu modelo 🚀
 
 Voy a generar:
 - 📋 Instrucciones paso a paso
-- 🧊 Modelo 3D interactivo
-- 📦 Lista de piezas con colores
+- 🧊 Modelo 3D interactivo que puedes rotar
+- 📦 Lista de piezas con colores exactos
 - 🛒 Dónde comprar cada pieza
 
-Pulsa el botón **"Generar modelo demo"** arriba para ver el resultado. En la versión completa con la API de OpenAI, esto se generaría automáticamente basado en nuestra conversación.
+👉 **Pulsa "Generar modelo 3D"** en la barra de arriba para ver tu creación.
 
 [READY_TO_GENERATE]
-{"name": "Modelo personalizado", "description": "Diseño basado en tu idea", "estimatedParts": 80, "colors": ["Red", "White", "Blue"], "style": "stylized"}`,
+{"name": "Modelo personalizado", "description": "Diseño basado en tu idea", "estimatedParts": 50, "colors": ["Yellow", "Orange", "White"], "style": "stylized"}`,
 ];
 
 let demoResponseIndex = 0;

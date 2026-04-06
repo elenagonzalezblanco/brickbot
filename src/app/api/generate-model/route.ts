@@ -133,16 +133,24 @@ function buildLDrawFromSteps(name: string, steps: any[]): string {
 }
 
 export async function POST(request: NextRequest) {
+  let conversationText = '';
   try {
     const body = await request.json();
     const { messages } = body;
 
     const config = getAzureConfig();
 
+    // Extract conversation text for keyword matching
+    conversationText = (messages || [])
+      .filter((m: any) => m.role === 'user')
+      .map((m: any) => (typeof m.content === 'string' ? m.content :
+        Array.isArray(m.content) ? m.content.filter((c: any) => c.type === 'text').map((c: any) => c.text).join(' ') : ''))
+      .join(' ');
+
     // If no API key or no messages, fall back to demo
     if (!config.apiKey || config.apiKey === 'PEGA-AQUI-TU-API-KEY' || !messages || messages.length === 0) {
       console.log('[BrickBot] No API key or messages, returning demo model');
-      const model = generateDemoModel();
+      const model = generateDemoModel(conversationText);
       return NextResponse.json({ model });
     }
 
@@ -230,7 +238,7 @@ export async function POST(request: NextRequest) {
     console.error('Generate model API error:', error);
     // Fall back to demo model on any error
     console.log('[BrickBot] Falling back to demo model');
-    const model = generateDemoModel();
+    const model = generateDemoModel(conversationText);
     return NextResponse.json({ model });
   }
 }

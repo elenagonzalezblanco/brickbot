@@ -92,7 +92,496 @@ export function generateLDrawModel(
 }
 
 // Generate a sample demo model (a simple house) for showcasing
-export function generateDemoModel(): LegoModel {
+export function generateDemoModel(conversationHint?: string): LegoModel {
+  // Pick the best demo model based on conversation content
+  const hint = (conversationHint || '').toLowerCase();
+  
+  if (hint.match(/pato|duck|patito/)) return generateDuckModel();
+  if (hint.match(/coche|car|auto|vehiculo|vehículo/)) return generateCarModel();
+  if (hint.match(/robot|mech|androide/)) return generateRobotModel();
+  if (hint.match(/árbol|arbol|tree|planta|flor/)) return generateTreeModel();
+  if (hint.match(/perro|dog|gato|cat|animal|mascota/)) return generateDogModel();
+  if (hint.match(/avión|avion|plane|cohete|rocket|nave/)) return generateRocketModel();
+  
+  // Default: house
+  return generateHouseModel();
+}
+
+function makeSourcing(totalParts: number) {
+  return [
+    {
+      type: 'bricklink' as const,
+      name: 'Comprar en BrickLink',
+      url: 'https://www.bricklink.com',
+      partsProvided: totalParts,
+      totalPartsNeeded: totalParts,
+      estimatedCost: +(totalParts * 0.12).toFixed(2),
+      coveragePercent: 100,
+    },
+    {
+      type: 'pick-a-brick' as const,
+      name: 'LEGO Pick a Brick',
+      url: 'https://www.lego.com/pick-and-build/pick-a-brick',
+      partsProvided: Math.round(totalParts * 0.7),
+      totalPartsNeeded: totalParts,
+      estimatedCost: +(totalParts * 0.18).toFixed(2),
+      coveragePercent: 70,
+    },
+  ];
+}
+
+// ── DUCK MODEL ──
+function generateDuckModel(): LegoModel {
+  const parts: LegoPart[] = [
+    { partNum: '3003', name: 'Brick 2x2', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 12, imageUrl: '' },
+    { partNum: '3001', name: 'Brick 2x4', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 6, imageUrl: '' },
+    { partNum: '3004', name: 'Brick 1x2', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 8, imageUrl: '' },
+    { partNum: '3005', name: 'Brick 1x1', colorId: 0, colorName: 'Black', colorHex: '05131D', quantity: 2, imageUrl: '' },
+    { partNum: '3039', name: 'Slope 2x2/45°', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 2, imageUrl: '' },
+    { partNum: '3022', name: 'Plate 2x2', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 4, imageUrl: '' },
+    { partNum: '3004', name: 'Brick 1x2', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 2, imageUrl: '' },
+    { partNum: '3024', name: 'Plate 1x1', colorId: 15, colorName: 'White', colorHex: 'FFFFFF', quantity: 2, imageUrl: '' },
+  ];
+
+  const ldraw = `0 FILE Pato_LEGO.ldr
+0 Pato LEGO - BrickBot
+0 Name: Pato_LEGO.ldr
+0 Author: BrickBot AI
+
+0 STEP
+0 // Step 1: Patas naranjas
+1 25 0 0 0 1 0 0 0 1 0 0 0 1 3022.dat
+1 25 40 0 0 1 0 0 0 1 0 0 0 1 3022.dat
+
+0 STEP
+0 // Step 2: Cuerpo bajo - base amarilla
+1 14 0 -8 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 0 -8 -40 1 0 0 0 1 0 0 0 1 3001.dat
+
+0 STEP
+0 // Step 3: Cuerpo medio amarillo
+1 14 0 -32 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 0 -32 -40 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 0 -32 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 40 -32 -20 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 STEP
+0 // Step 4: Cuerpo superior - pecho y alas
+1 14 0 -56 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 40 -56 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 -20 -56 -20 1 0 0 0 1 0 0 0 1 3004.dat
+1 14 80 -56 -20 1 0 0 0 1 0 0 0 1 3004.dat
+
+0 STEP
+0 // Step 5: Cabeza amarilla
+1 14 20 -80 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 20 -80 -60 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 STEP
+0 // Step 6: Ojos negros y pico naranja
+1 0 20 -104 -10 1 0 0 0 1 0 0 0 1 3005.dat
+1 0 40 -104 -10 1 0 0 0 1 0 0 0 1 3005.dat
+1 25 20 -80 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 14 20 -104 -30 1 0 0 0 1 0 0 0 1 3004.dat
+
+0 NOFILE`;
+
+  const totalParts = parts.reduce((s, p) => s + p.quantity, 0);
+  const steps: BuildStep[] = [
+    { stepNumber: 1, description: 'Coloca las patas naranjas (2 placas 2x2)', parts: [parts[5]] },
+    { stepNumber: 2, description: 'Base del cuerpo amarillo (2 bricks 2x4)', parts: [parts[1]] },
+    { stepNumber: 3, description: 'Cuerpo medio - barriga del pato', parts: [parts[0], parts[1]] },
+    { stepNumber: 4, description: 'Parte superior y alas laterales', parts: [parts[0], parts[2]] },
+    { stepNumber: 5, description: 'Cabeza del pato (2 bricks 2x2)', parts: [parts[0]] },
+    { stepNumber: 6, description: 'Añade ojos negros y pico naranja', parts: [parts[3], parts[4]] },
+  ];
+
+  return {
+    id: 'demo-duck',
+    name: 'Pato LEGO',
+    description: 'Un simpático pato amarillo con pico naranja',
+    totalParts,
+    estimatedPrice: +(totalParts * 0.15).toFixed(2),
+    ldrawContent: ldraw,
+    steps,
+    partsList: parts,
+    sourcingSuggestions: makeSourcing(totalParts),
+  };
+}
+
+// ── CAR MODEL ──
+function generateCarModel(): LegoModel {
+  const parts: LegoPart[] = [
+    { partNum: '3001', name: 'Brick 2x4', colorId: 4, colorName: 'Red', colorHex: 'C91A09', quantity: 6, imageUrl: '' },
+    { partNum: '3003', name: 'Brick 2x2', colorId: 4, colorName: 'Red', colorHex: 'C91A09', quantity: 4, imageUrl: '' },
+    { partNum: '3020', name: 'Plate 2x4', colorId: 72, colorName: 'Dark Gray', colorHex: '6C6E68', quantity: 4, imageUrl: '' },
+    { partNum: '3003', name: 'Brick 2x2', colorId: 0, colorName: 'Black', colorHex: '05131D', quantity: 4, imageUrl: '' },
+    { partNum: '3039', name: 'Slope 2x2/45°', colorId: 4, colorName: 'Red', colorHex: 'C91A09', quantity: 2, imageUrl: '' },
+    { partNum: '3004', name: 'Brick 1x2', colorId: 15, colorName: 'White', colorHex: 'FFFFFF', quantity: 4, imageUrl: '' },
+    { partNum: '3022', name: 'Plate 2x2', colorId: 71, colorName: 'Light Gray', colorHex: 'A0A5A9', quantity: 2, imageUrl: '' },
+  ];
+
+  const ldraw = `0 FILE Coche_LEGO.ldr
+0 Coche LEGO - BrickBot
+0 Name: Coche_LEGO.ldr
+0 Author: BrickBot AI
+
+0 STEP
+0 // Step 1: Chasis gris
+1 72 0 0 0 1 0 0 0 1 0 0 0 1 3020.dat
+1 72 80 0 0 1 0 0 0 1 0 0 0 1 3020.dat
+1 72 0 0 -40 1 0 0 0 1 0 0 0 1 3020.dat
+1 72 80 0 -40 1 0 0 0 1 0 0 0 1 3020.dat
+
+0 STEP
+0 // Step 2: Ruedas negras
+1 0 -10 -8 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 0 130 -8 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 0 -10 -8 -40 1 0 0 0 1 0 0 0 1 3003.dat
+1 0 130 -8 -40 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 STEP
+0 // Step 3: Carrocería roja inferior
+1 4 0 -8 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 80 -8 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 0 -8 -40 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 80 -8 -40 1 0 0 0 1 0 0 0 1 3001.dat
+
+0 STEP
+0 // Step 4: Ventanas blancas y carrocería superior
+1 15 20 -32 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 15 60 -32 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 15 20 -32 -40 1 0 0 0 1 0 0 0 1 3004.dat
+1 15 60 -32 -40 1 0 0 0 1 0 0 0 1 3004.dat
+1 4 20 -32 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 4 60 -32 -20 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 STEP
+0 // Step 5: Techo rojo
+1 4 20 -56 -10 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 20 -56 -30 1 0 0 0 1 0 0 0 1 3001.dat
+
+0 NOFILE`;
+
+  const totalParts = parts.reduce((s, p) => s + p.quantity, 0);
+  const steps: BuildStep[] = [
+    { stepNumber: 1, description: 'Monta el chasis gris (4 placas 2x4)', parts: [parts[2]] },
+    { stepNumber: 2, description: 'Añade las 4 ruedas negras', parts: [parts[3]] },
+    { stepNumber: 3, description: 'Carrocería roja - parte inferior', parts: [parts[0]] },
+    { stepNumber: 4, description: 'Ventanas blancas y laterales', parts: [parts[5], parts[1]] },
+    { stepNumber: 5, description: 'Techo rojo del coche', parts: [parts[0]] },
+  ];
+
+  return {
+    id: 'demo-car',
+    name: 'Coche LEGO',
+    description: 'Un coche deportivo rojo con ventanas',
+    totalParts,
+    estimatedPrice: +(totalParts * 0.15).toFixed(2),
+    ldrawContent: ldraw,
+    steps,
+    partsList: parts,
+    sourcingSuggestions: makeSourcing(totalParts),
+  };
+}
+
+// ── ROBOT MODEL ──
+function generateRobotModel(): LegoModel {
+  const parts: LegoPart[] = [
+    { partNum: '3003', name: 'Brick 2x2', colorId: 71, colorName: 'Light Gray', colorHex: 'A0A5A9', quantity: 8, imageUrl: '' },
+    { partNum: '3001', name: 'Brick 2x4', colorId: 71, colorName: 'Light Gray', colorHex: 'A0A5A9', quantity: 4, imageUrl: '' },
+    { partNum: '3004', name: 'Brick 1x2', colorId: 1, colorName: 'Blue', colorHex: '0055BF', quantity: 4, imageUrl: '' },
+    { partNum: '3005', name: 'Brick 1x1', colorId: 4, colorName: 'Red', colorHex: 'C91A09', quantity: 2, imageUrl: '' },
+    { partNum: '3022', name: 'Plate 2x2', colorId: 72, colorName: 'Dark Gray', colorHex: '6C6E68', quantity: 4, imageUrl: '' },
+    { partNum: '3024', name: 'Plate 1x1', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 2, imageUrl: '' },
+  ];
+
+  const ldraw = `0 FILE Robot_LEGO.ldr
+0 Robot LEGO - BrickBot
+0 Name: Robot_LEGO.ldr
+0 Author: BrickBot AI
+
+0 STEP
+0 // Step 1: Pies del robot
+1 72 0 0 0 1 0 0 0 1 0 0 0 1 3022.dat
+1 72 60 0 0 1 0 0 0 1 0 0 0 1 3022.dat
+
+0 STEP
+0 // Step 2: Piernas grises
+1 71 0 -8 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 71 60 -8 0 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 STEP
+0 // Step 3: Cuerpo - torso grande
+1 71 10 -32 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 71 10 -32 -40 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 10 -56 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 1 50 -56 0 1 0 0 0 1 0 0 0 1 3004.dat
+
+0 STEP
+0 // Step 4: Brazos laterales
+1 71 -30 -32 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 71 100 -32 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 72 -30 -56 -10 1 0 0 0 1 0 0 0 1 3022.dat
+1 72 100 -56 -10 1 0 0 0 1 0 0 0 1 3022.dat
+
+0 STEP
+0 // Step 5: Cabeza y cara
+1 71 20 -56 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 71 20 -80 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 4 25 -104 -5 1 0 0 0 1 0 0 0 1 3005.dat
+1 4 45 -104 -5 1 0 0 0 1 0 0 0 1 3005.dat
+1 14 30 -80 10 1 0 0 0 1 0 0 0 1 3024.dat
+1 14 40 -80 10 1 0 0 0 1 0 0 0 1 3024.dat
+
+0 NOFILE`;
+
+  const totalParts = parts.reduce((s, p) => s + p.quantity, 0);
+  const steps: BuildStep[] = [
+    { stepNumber: 1, description: 'Pies del robot (2 placas oscuras)', parts: [parts[4]] },
+    { stepNumber: 2, description: 'Piernas grises (2 bricks 2x2)', parts: [parts[0]] },
+    { stepNumber: 3, description: 'Torso central con detalles azules', parts: [parts[1], parts[2]] },
+    { stepNumber: 4, description: 'Brazos laterales articulados', parts: [parts[0], parts[4]] },
+    { stepNumber: 5, description: 'Cabeza con ojos rojos y antena', parts: [parts[0], parts[3], parts[5]] },
+  ];
+
+  return {
+    id: 'demo-robot',
+    name: 'Robot LEGO',
+    description: 'Un robot futurista gris con ojos rojos',
+    totalParts,
+    estimatedPrice: +(totalParts * 0.15).toFixed(2),
+    ldrawContent: ldraw,
+    steps,
+    partsList: parts,
+    sourcingSuggestions: makeSourcing(totalParts),
+  };
+}
+
+// ── TREE MODEL ──
+function generateTreeModel(): LegoModel {
+  const parts: LegoPart[] = [
+    { partNum: '3003', name: 'Brick 2x2', colorId: 6, colorName: 'Brown', colorHex: '583927', quantity: 4, imageUrl: '' },
+    { partNum: '3003', name: 'Brick 2x2', colorId: 2, colorName: 'Green', colorHex: '237841', quantity: 10, imageUrl: '' },
+    { partNum: '3001', name: 'Brick 2x4', colorId: 2, colorName: 'Green', colorHex: '237841', quantity: 4, imageUrl: '' },
+    { partNum: '3039', name: 'Slope 2x2/45°', colorId: 2, colorName: 'Green', colorHex: '237841', quantity: 4, imageUrl: '' },
+    { partNum: '3022', name: 'Plate 2x2', colorId: 2, colorName: 'Green', colorHex: '237841', quantity: 2, imageUrl: '' },
+    { partNum: '3005', name: 'Brick 1x1', colorId: 4, colorName: 'Red', colorHex: 'C91A09', quantity: 3, imageUrl: '' },
+  ];
+
+  const ldraw = `0 FILE Arbol_LEGO.ldr
+0 Arbol LEGO - BrickBot
+0 Name: Arbol_LEGO.ldr
+0 Author: BrickBot AI
+
+0 STEP
+0 // Step 1: Base del tronco
+1 6 20 0 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 6 20 -24 -10 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 STEP
+0 // Step 2: Tronco superior
+1 6 20 -48 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 6 20 -72 -10 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 STEP
+0 // Step 3: Copa inferior - hojas anchas
+1 2 -20 -96 -30 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 60 -96 -30 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 -20 -96 10 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 60 -96 10 1 0 0 0 1 0 0 0 1 3001.dat
+
+0 STEP
+0 // Step 4: Copa media con frutas rojas
+1 2 0 -120 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 2 40 -120 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 2 0 -120 20 1 0 0 0 1 0 0 0 1 3003.dat
+1 2 40 -120 20 1 0 0 0 1 0 0 0 1 3003.dat
+1 4 -5 -120 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 4 65 -120 0 1 0 0 0 1 0 0 0 1 3005.dat
+
+0 STEP
+0 // Step 5: Cima del árbol
+1 2 10 -144 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 2 30 -144 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 2 20 -144 0 1 0 0 0 1 0 0 0 1 3022.dat
+1 4 30 -168 -5 1 0 0 0 1 0 0 0 1 3005.dat
+
+0 NOFILE`;
+
+  const totalParts = parts.reduce((s, p) => s + p.quantity, 0);
+  const steps: BuildStep[] = [
+    { stepNumber: 1, description: 'Base del tronco marrón', parts: [parts[0]] },
+    { stepNumber: 2, description: 'Tronco superior', parts: [parts[0]] },
+    { stepNumber: 3, description: 'Copa inferior - hojas anchas', parts: [parts[2]] },
+    { stepNumber: 4, description: 'Copa media con frutas rojas', parts: [parts[1], parts[5]] },
+    { stepNumber: 5, description: 'Cima del árbol', parts: [parts[1], parts[4]] },
+  ];
+
+  return {
+    id: 'demo-tree',
+    name: 'Árbol LEGO',
+    description: 'Un frondoso árbol verde con frutas rojas',
+    totalParts,
+    estimatedPrice: +(totalParts * 0.15).toFixed(2),
+    ldrawContent: ldraw,
+    steps,
+    partsList: parts,
+    sourcingSuggestions: makeSourcing(totalParts),
+  };
+}
+
+// ── DOG MODEL ──
+function generateDogModel(): LegoModel {
+  const parts: LegoPart[] = [
+    { partNum: '3003', name: 'Brick 2x2', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 8, imageUrl: '' },
+    { partNum: '3001', name: 'Brick 2x4', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 4, imageUrl: '' },
+    { partNum: '3004', name: 'Brick 1x2', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 4, imageUrl: '' },
+    { partNum: '3005', name: 'Brick 1x1', colorId: 0, colorName: 'Black', colorHex: '05131D', quantity: 3, imageUrl: '' },
+    { partNum: '3022', name: 'Plate 2x2', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 2, imageUrl: '' },
+    { partNum: '3004', name: 'Brick 1x2', colorId: 15, colorName: 'White', colorHex: 'FFFFFF', quantity: 2, imageUrl: '' },
+  ];
+
+  const ldraw = `0 FILE Perro_LEGO.ldr
+0 Perro LEGO - BrickBot
+0 Name: Perro_LEGO.ldr
+0 Author: BrickBot AI
+
+0 STEP
+0 // Step 1: Patas del perro
+1 25 0 0 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 25 60 0 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 25 0 0 -40 1 0 0 0 1 0 0 0 1 3004.dat
+1 25 60 0 -40 1 0 0 0 1 0 0 0 1 3004.dat
+
+0 STEP
+0 // Step 2: Cuerpo del perro
+1 25 0 -24 -10 1 0 0 0 1 0 0 0 1 3001.dat
+1 25 0 -24 -30 1 0 0 0 1 0 0 0 1 3001.dat
+
+0 STEP
+0 // Step 3: Lomo y barriga
+1 25 0 -48 -10 1 0 0 0 1 0 0 0 1 3001.dat
+1 15 0 -48 -30 1 0 0 0 1 0 0 0 1 3004.dat
+1 15 40 -48 -30 1 0 0 0 1 0 0 0 1 3004.dat
+1 25 0 -48 -50 1 0 0 0 1 0 0 0 1 3001.dat
+
+0 STEP
+0 // Step 4: Cabeza
+1 25 -30 -48 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 25 -30 -72 -20 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 STEP
+0 // Step 5: Cara - ojos, nariz y cola
+1 0 -30 -96 -15 1 0 0 0 1 0 0 0 1 3005.dat
+1 0 -10 -96 -15 1 0 0 0 1 0 0 0 1 3005.dat
+1 0 -20 -72 -40 1 0 0 0 1 0 0 0 1 3005.dat
+1 25 80 -48 -20 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 NOFILE`;
+
+  const totalParts = parts.reduce((s, p) => s + p.quantity, 0);
+  const steps: BuildStep[] = [
+    { stepNumber: 1, description: 'Cuatro patas naranjas', parts: [parts[2]] },
+    { stepNumber: 2, description: 'Cuerpo base (2 bricks 2x4)', parts: [parts[1]] },
+    { stepNumber: 3, description: 'Lomo y barriga blanca', parts: [parts[1], parts[5]] },
+    { stepNumber: 4, description: 'Cabeza del perro', parts: [parts[0]] },
+    { stepNumber: 5, description: 'Ojos, nariz y cola', parts: [parts[3], parts[0]] },
+  ];
+
+  return {
+    id: 'demo-dog',
+    name: 'Perro LEGO',
+    description: 'Un simpático perro naranja con barriga blanca',
+    totalParts,
+    estimatedPrice: +(totalParts * 0.15).toFixed(2),
+    ldrawContent: ldraw,
+    steps,
+    partsList: parts,
+    sourcingSuggestions: makeSourcing(totalParts),
+  };
+}
+
+// ── ROCKET MODEL ──
+function generateRocketModel(): LegoModel {
+  const parts: LegoPart[] = [
+    { partNum: '3003', name: 'Brick 2x2', colorId: 15, colorName: 'White', colorHex: 'FFFFFF', quantity: 8, imageUrl: '' },
+    { partNum: '3001', name: 'Brick 2x4', colorId: 15, colorName: 'White', colorHex: 'FFFFFF', quantity: 2, imageUrl: '' },
+    { partNum: '3039', name: 'Slope 2x2/45°', colorId: 4, colorName: 'Red', colorHex: 'C91A09', quantity: 4, imageUrl: '' },
+    { partNum: '3004', name: 'Brick 1x2', colorId: 1, colorName: 'Blue', colorHex: '0055BF', quantity: 4, imageUrl: '' },
+    { partNum: '3022', name: 'Plate 2x2', colorId: 72, colorName: 'Dark Gray', colorHex: '6C6E68', quantity: 4, imageUrl: '' },
+    { partNum: '3005', name: 'Brick 1x1', colorId: 4, colorName: 'Red', colorHex: 'C91A09', quantity: 2, imageUrl: '' },
+    { partNum: '3039', name: 'Slope 2x2/45°', colorId: 15, colorName: 'White', colorHex: 'FFFFFF', quantity: 2, imageUrl: '' },
+  ];
+
+  const ldraw = `0 FILE Cohete_LEGO.ldr
+0 Cohete LEGO - BrickBot
+0 Name: Cohete_LEGO.ldr
+0 Author: BrickBot AI
+
+0 STEP
+0 // Step 1: Propulsores grises
+1 72 0 0 0 1 0 0 0 1 0 0 0 1 3022.dat
+1 72 0 0 -40 1 0 0 0 1 0 0 0 1 3022.dat
+1 72 40 0 0 1 0 0 0 1 0 0 0 1 3022.dat
+1 72 40 0 -40 1 0 0 0 1 0 0 0 1 3022.dat
+
+0 STEP
+0 // Step 2: Alerones rojos
+1 4 -20 -8 -10 1 0 0 0 1 0 0 0 1 3039.dat
+1 4 60 -8 -10 1 0 0 0 1 0 0 0 1 3039.dat
+1 4 20 -8 -50 1 0 0 0 1 0 0 0 1 3039.dat
+1 4 20 -8 30 1 0 0 0 1 0 0 0 1 3039.dat
+
+0 STEP
+0 // Step 3: Cuerpo inferior blanco
+1 15 10 -8 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 15 10 -32 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 15 10 -32 -30 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 STEP
+0 // Step 4: Cuerpo medio con ventanas azules
+1 15 10 -56 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 1 10 -56 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 1 30 -56 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 15 10 -80 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 1 10 -80 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 1 30 -80 0 1 0 0 0 1 0 0 0 1 3004.dat
+
+0 STEP
+0 // Step 5: Punta del cohete
+1 15 10 -104 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 15 10 -104 0 1 0 0 0 1 0 0 0 1 3039.dat
+1 15 10 -104 -40 1 0 0 0 1 0 0 0 1 3039.dat
+1 4 20 -128 -10 1 0 0 0 1 0 0 0 1 3005.dat
+1 4 20 -128 -20 1 0 0 0 1 0 0 0 1 3005.dat
+
+0 NOFILE`;
+
+  const totalParts = parts.reduce((s, p) => s + p.quantity, 0);
+  const steps: BuildStep[] = [
+    { stepNumber: 1, description: 'Propulsores grises de la base', parts: [parts[4]] },
+    { stepNumber: 2, description: 'Alerones rojos laterales', parts: [parts[2]] },
+    { stepNumber: 3, description: 'Cuerpo inferior blanco', parts: [parts[0]] },
+    { stepNumber: 4, description: 'Cuerpo medio con ventanas azules', parts: [parts[0], parts[3]] },
+    { stepNumber: 5, description: 'Punta del cohete con cono', parts: [parts[0], parts[6], parts[5]] },
+  ];
+
+  return {
+    id: 'demo-rocket',
+    name: 'Cohete LEGO',
+    description: 'Un cohete espacial blanco con alerones rojos',
+    totalParts,
+    estimatedPrice: +(totalParts * 0.15).toFixed(2),
+    ldrawContent: ldraw,
+    steps,
+    partsList: parts,
+    sourcingSuggestions: makeSourcing(totalParts),
+  };
+}
+
+// ── HOUSE MODEL (default) ──
+function generateHouseModel(): LegoModel {
   const parts: LegoPart[] = [
     { partNum: '3001', name: 'Brick 2x4', colorId: 4, colorName: 'Red', colorHex: 'C91A09', quantity: 20, imageUrl: '' },
     { partNum: '3003', name: 'Brick 2x2', colorId: 4, colorName: 'Red', colorHex: 'C91A09', quantity: 12, imageUrl: '' },
@@ -104,7 +593,6 @@ export function generateDemoModel(): LegoModel {
     { partNum: '3024', name: 'Plate 1x1', colorId: 0, colorName: 'Black', colorHex: '05131D', quantity: 4, imageUrl: '' },
   ];
 
-  // Build a simple house in LDraw
   const ldraw = `0 FILE Casa_Demo.ldr
 0 Casa Demo - BrickBot
 0 Name: Casa_Demo.ldr
@@ -151,6 +639,7 @@ export function generateDemoModel(): LegoModel {
 
 0 NOFILE`;
 
+  const totalParts = parts.reduce((sum, p) => sum + p.quantity, 0);
   const steps: BuildStep[] = [
     { stepNumber: 1, description: 'Coloca la base verde (4 placas 2x4)', parts: [parts[4]] },
     { stepNumber: 2, description: 'Primera fila de ladrillos rojos', parts: [parts[0]] },
@@ -163,31 +652,12 @@ export function generateDemoModel(): LegoModel {
     id: 'demo-house',
     name: 'Casa Demo',
     description: 'Una casa sencilla para demostrar las capacidades de BrickBot',
-    totalParts: parts.reduce((sum, p) => sum + p.quantity, 0),
+    totalParts,
     estimatedPrice: 12.50,
     ldrawContent: ldraw,
     steps,
     partsList: parts,
-    sourcingSuggestions: [
-      {
-        type: 'bricklink',
-        name: 'Comprar en BrickLink',
-        url: 'https://www.bricklink.com',
-        partsProvided: 80,
-        totalPartsNeeded: 80,
-        estimatedCost: 8.50,
-        coveragePercent: 100,
-      },
-      {
-        type: 'pick-a-brick',
-        name: 'LEGO Pick a Brick',
-        url: 'https://www.lego.com/pick-and-build/pick-a-brick',
-        partsProvided: 56,
-        totalPartsNeeded: 80,
-        estimatedCost: 11.00,
-        coveragePercent: 70,
-      },
-    ],
+    sourcingSuggestions: makeSourcing(totalParts),
   };
 }
 

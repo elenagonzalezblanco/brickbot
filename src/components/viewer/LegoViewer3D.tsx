@@ -106,9 +106,13 @@ export default function LegoViewer3D({ model, currentStep }: LegoViewer3DProps) 
           1: 0x0055bf,   // Blue
           2: 0x237841,   // Green
           4: 0xc91a09,   // Red
+          5: 0x8320b7,   // Purple
+          6: 0x583927,   // Brown
+          13: 0xfcb4d0,  // Pink
           14: 0xf2cd37,  // Yellow
           15: 0xffffff,  // White
           25: 0xfe8a18,  // Orange
+          27: 0xbdc618,  // Lime
           71: 0xa0a5a9,  // Light Bluish Gray
           72: 0x6c6e68,  // Dark Bluish Gray
         };
@@ -155,10 +159,24 @@ export default function LegoViewer3D({ model, currentStep }: LegoViewer3DProps) 
               width = 40; depth = 20;
             } else if (partFile.includes('3010') || partFile.includes('1x4')) {
               width = 80; depth = 20;
-            } else if (partFile.includes('3020') || partFile.includes('plate')) {
-              width = 80; depth = 40; height = 8;
+            } else if (partFile.includes('3622') || partFile.includes('1x3')) {
+              width = 60; depth = 20;
+            } else if (partFile.includes('3009') || partFile.includes('1x6')) {
+              width = 120; depth = 20;
+            } else if (partFile.includes('3005') || partFile.includes('1x1')) {
+              width = 20; depth = 20;
+            } else if (partFile.includes('3020')) {
+              width = 80; depth = 40; height = 8;  // Plate 2x4
+            } else if (partFile.includes('3022')) {
+              width = 40; depth = 40; height = 8;  // Plate 2x2
+            } else if (partFile.includes('3023')) {
+              width = 40; depth = 20; height = 8;  // Plate 1x2
+            } else if (partFile.includes('3024')) {
+              width = 20; depth = 20; height = 8;  // Plate 1x1
             } else if (partFile.includes('3039') || partFile.includes('slope')) {
               width = 40; depth = 40; height = 24;
+            } else if (partFile.includes('3040')) {
+              width = 40; depth = 20; height = 24;  // Slope 1x2
             }
 
             // Create brick body
