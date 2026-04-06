@@ -8,7 +8,7 @@ REGLAS:
 2. Ayuda al usuario a concretar su idea de construcción paso a paso.
 3. Pregunta detalles: colores preferidos, tamaño, nivel de detalle.
 4. Cuando el usuario suba una imagen, analízala y sugiere cómo traducirla a LEGO.
-5. Ten en cuenta el presupuesto/número de piezas configurado por el usuario.
+5. IMPORTANTE: Respeta SIEMPRE el rango de piezas y la complejidad configurados por el usuario. Nunca sugieras un número de piezas fuera del rango configurado.
 6. Cuando tengas suficiente información, indica que estás listo para generar el modelo.
 7. Sé visual en tus explicaciones, usa emojis relacionados con LEGO 🧱🔴🟡🔵.
 8. Si el usuario quiere construir desde un set existente, sugiere sets específicos.
@@ -30,8 +30,15 @@ seguido de un resumen JSON del modelo en formato:
 }`;
 
 // Smart demo responses when no backend (GitHub Pages static deploy)
-const DEMO_RESPONSES = [
-  `¡Me encanta tu idea! 🧱✨ Déjame pensar en cómo traducir eso a piezas LEGO...
+function getDemoResponses(config: ProjectConfig) {
+  const minP = config.minPieces || 50;
+  const maxP = config.maxPieces || 500;
+  const complexity = config.complexity || 'medium';
+  const complexityLabel = complexity === 'simple' ? 'baja' : complexity === 'advanced' ? 'alta' : 'media';
+  const estimatedParts = Math.round((minP + maxP) / 2);
+
+  return [
+    `¡Me encanta tu idea! 🧱✨ Déjame pensar en cómo traducir eso a piezas LEGO...
 
 Algunas preguntas para afinar el diseño:
 - 🎨 ¿Tienes colores preferidos?
@@ -40,16 +47,16 @@ Algunas preguntas para afinar el diseño:
 
 ¡Cuéntame más y lo diseñamos juntos!`,
 
-  `¡Genial! Con esos detalles ya tengo una buena idea 🎨
+    `¡Genial! Con esos detalles ya tengo una buena idea 🎨
 
 Estoy pensando en un diseño con:
-- Alrededor de **30-80 piezas**
+- Alrededor de **${minP}-${maxP} piezas**
 - Colores que encajen con tu idea
-- Complejidad media, perfecto para construir en 20-30 min
+- Complejidad ${complexityLabel}, perfecto para un buen rato de construcción
 
 Cuando quieras, pulsa el botón verde **"Generar modelo 3D"** ⬆️ arriba para que cree tu modelo con instrucciones paso a paso. 🧊`,
 
-  `¡Perfecto! Creo que ya tengo suficiente para crear tu modelo 🚀
+    `¡Perfecto! Creo que ya tengo suficiente para crear tu modelo 🚀
 
 Voy a generar:
 - 📋 Instrucciones paso a paso
@@ -60,8 +67,9 @@ Voy a generar:
 👉 **Pulsa "Generar modelo 3D"** en la barra de arriba para ver tu creación.
 
 [READY_TO_GENERATE]
-{"name": "Modelo personalizado", "description": "Diseño basado en tu idea", "estimatedParts": 50, "colors": ["Yellow", "Orange", "White"], "style": "stylized"}`,
-];
+{"name": "Modelo personalizado", "description": "Diseño basado en tu idea", "estimatedParts": ${estimatedParts}, "colors": ["Yellow", "Orange", "White"], "style": "stylized"}`,
+  ];
+}
 
 let demoResponseIndex = 0;
 
@@ -117,7 +125,8 @@ CONFIGURACIÓN DEL USUARIO:
 
   // Demo fallback
   await new Promise((r) => setTimeout(r, 1000 + Math.random() * 1500));
-  const resp = DEMO_RESPONSES[demoResponseIndex % DEMO_RESPONSES.length];
+  const demoResponses = getDemoResponses(config);
+  const resp = demoResponses[demoResponseIndex % demoResponses.length];
   demoResponseIndex++;
   return resp;
 }

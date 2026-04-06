@@ -61,12 +61,29 @@ COORDENADAS:
 
 REGLAS:
 - Crea un modelo que represente lo que el usuario pidió.
-- Usa entre 20 y 120 piezas según la complejidad.
-- Genera entre 3 y 8 pasos de construcción.
+- {{PIECE_RULE}}
+- {{STEP_RULE}}
 - Los pasos van de abajo hacia arriba.
 - En cada paso, muestra los bricks que se añaden EN ESE paso.
 - La lista "parts" es el resumen total de todas las piezas.
 - Intenta que el modelo sea reconocible y bonito.`;
+
+function buildModelGenPrompt(config?: { minPieces?: number; maxPieces?: number; complexity?: string }): string {
+  const minPieces = config?.minPieces || 50;
+  const maxPieces = config?.maxPieces || 500;
+  const complexity = config?.complexity || 'medium';
+
+  let stepRange: string;
+  switch (complexity) {
+    case 'simple': stepRange = '2 y 4'; break;
+    case 'advanced': stepRange = '6 y 10'; break;
+    default: stepRange = '4 y 7'; break;
+  }
+
+  return MODEL_GEN_PROMPT
+    .replace('{{PIECE_RULE}}', `Usa entre ${minPieces} y ${maxPieces} piezas. La complejidad del modelo debe ser: ${complexity}.`)
+    .replace('{{STEP_RULE}}', `Genera entre ${stepRange} pasos de construcción.`);
+}
 
 function buildLDrawFromSteps(name: string, steps: any[]): string {
   const lines: string[] = [
@@ -93,7 +110,7 @@ export async function POST(request: NextRequest) {
   let conversationText = '';
   try {
     const body = await request.json();
-    const { messages } = body;
+    const { messages, config: userConfig } = body;
 
     const config = getAzureConfig();
 
@@ -123,8 +140,11 @@ export async function POST(request: NextRequest) {
 
     console.log(`[BrickBot] Generating model from ${textMessages.length} messages...`);
 
+    const systemPrompt = buildModelGenPrompt(userConfig);
+    console.log(`[BrickBot] Config: pieces=${userConfig?.minPieces || 50}-${userConfig?.maxPieces || 500}, complexity=${userConfig?.complexity || 'medium'}`);
+
     const azureMessages = [
-      { role: 'system', content: MODEL_GEN_PROMPT },
+      { role: 'system', content: systemPrompt },
       ...textMessages,
       { role: 'user', content: 'Ahora genera el modelo LEGO en formato JSON basado en nuestra conversación. Responde SOLO con el JSON.' },
     ];

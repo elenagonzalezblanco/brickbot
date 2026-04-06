@@ -16,7 +16,7 @@ const loadingMessages = [
   '✨ Puliendo los detalles finales...',
 ];
 
-async function generateModelFromChat(messages: any[]): Promise<any> {
+async function generateModelFromChat(messages: any[], config?: any): Promise<any> {
   // Extract conversation text for keyword matching in demo fallback
   const conversationText = messages
     .filter((m: any) => m.role === 'user')
@@ -28,7 +28,7 @@ async function generateModelFromChat(messages: any[]): Promise<any> {
     const response = await fetch('/api/generate-model/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, config }),
     });
 
     if (response.ok) {
@@ -46,7 +46,7 @@ async function generateModelFromChat(messages: any[]): Promise<any> {
 export default function GeneratingScreen() {
   const [messageIndex, setMessageIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-  const { messages, setGeneratedModel, setCurrentStep } = useAppStore();
+  const { messages, projectConfig, setGeneratedModel, setCurrentStep } = useAppStore();
 
   useEffect(() => {
     const msgInterval = setInterval(() => {
@@ -77,8 +77,8 @@ export default function GeneratingScreen() {
       return { role: msg.role, content: msg.content };
     });
 
-    // Call the generate-model API with conversation context
-    generateModelFromChat(apiMessages).then((model) => {
+    // Call the generate-model API with conversation context and user config
+    generateModelFromChat(apiMessages, projectConfig).then((model) => {
       setProgress(100);
       setTimeout(() => {
         setGeneratedModel(model);
@@ -90,7 +90,7 @@ export default function GeneratingScreen() {
       clearInterval(msgInterval);
       clearInterval(progressInterval);
     };
-  }, [messages, setGeneratedModel, setCurrentStep]);
+  }, [messages, projectConfig, setGeneratedModel, setCurrentStep]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-lego-yellow/10 via-white to-lego-blue/10 flex items-center justify-center">

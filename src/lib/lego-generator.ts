@@ -133,73 +133,104 @@ function makeSourcing(totalParts: number) {
 // ── DUCK MODEL ──
 function generateDuckModel(): LegoModel {
   const parts: LegoPart[] = [
-    { partNum: '3003', name: 'Brick 2x2', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 12, imageUrl: '' },
-    { partNum: '3001', name: 'Brick 2x4', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 6, imageUrl: '' },
+    { partNum: '3001', name: 'Brick 2x4', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 7, imageUrl: '' },
+    { partNum: '3003', name: 'Brick 2x2', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 14, imageUrl: '' },
     { partNum: '3004', name: 'Brick 1x2', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 8, imageUrl: '' },
+    { partNum: '3005', name: 'Brick 1x1', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 4, imageUrl: '' },
     { partNum: '3005', name: 'Brick 1x1', colorId: 0, colorName: 'Black', colorHex: '05131D', quantity: 2, imageUrl: '' },
-    { partNum: '3039', name: 'Slope 2x2/45°', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 2, imageUrl: '' },
-    { partNum: '3022', name: 'Plate 2x2', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 4, imageUrl: '' },
-    { partNum: '3004', name: 'Brick 1x2', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 2, imageUrl: '' },
-    { partNum: '3024', name: 'Plate 1x1', colorId: 15, colorName: 'White', colorHex: 'FFFFFF', quantity: 2, imageUrl: '' },
+    { partNum: '3020', name: 'Plate 2x4', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 2, imageUrl: '' },
+    { partNum: '3022', name: 'Plate 2x2', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 2, imageUrl: '' },
+    { partNum: '3023', name: 'Plate 1x2', colorId: 25, colorName: 'Orange', colorHex: 'FE8A18', quantity: 2, imageUrl: '' },
+    { partNum: '3039', name: 'Slope 2x2/45°', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 1, imageUrl: '' },
   ];
 
+  // Duck faces negative Z (toward viewer). Body centered at x~40, z~60.
+  // Y: 0=base (feet), negative=higher layers (LDraw convention, viewer negates Y).
+  // Stacking: plates h=8, bricks h=24. Layer y offsets: 0, -8, -32, -56, -80, -104, -128, -152.
   const ldraw = `0 FILE Pato_LEGO.ldr
 0 Pato LEGO - BrickBot
 0 Name: Pato_LEGO.ldr
 0 Author: BrickBot AI
 
 0 STEP
-0 // Step 1: Patas naranjas
-1 25 0 0 0 1 0 0 0 1 0 0 0 1 3022.dat
-1 25 40 0 0 1 0 0 0 1 0 0 0 1 3022.dat
+0 // Step 1: Base naranja - patas del pato
+1 25 40 0 40 1 0 0 0 1 0 0 0 1 3020.dat
+1 25 40 0 80 1 0 0 0 1 0 0 0 1 3020.dat
+1 25 80 0 40 1 0 0 0 1 0 0 0 1 3022.dat
+1 25 0 0 60 1 0 0 0 1 0 0 0 1 3022.dat
 
 0 STEP
-0 // Step 2: Cuerpo bajo - base amarilla
-1 14 0 -8 0 1 0 0 0 1 0 0 0 1 3001.dat
-1 14 0 -8 -40 1 0 0 0 1 0 0 0 1 3001.dat
+0 // Step 2: Cuerpo inferior - barriga ancha
+1 14 40 -8 40 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 40 -8 80 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 -20 -8 60 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 100 -8 60 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 40 -8 110 1 0 0 0 1 0 0 0 1 3003.dat
 
 0 STEP
-0 // Step 3: Cuerpo medio amarillo
-1 14 0 -32 0 1 0 0 0 1 0 0 0 1 3001.dat
-1 14 0 -32 -40 1 0 0 0 1 0 0 0 1 3001.dat
-1 14 0 -32 -20 1 0 0 0 1 0 0 0 1 3003.dat
-1 14 40 -32 -20 1 0 0 0 1 0 0 0 1 3003.dat
+0 // Step 3: Cuerpo medio - la parte mas ancha con alas
+1 14 40 -32 40 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 40 -32 80 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 -20 -32 60 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 100 -32 60 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 40 -32 110 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 -50 -32 60 1 0 0 0 1 0 0 0 1 3004.dat
+1 14 130 -32 60 1 0 0 0 1 0 0 0 1 3004.dat
 
 0 STEP
-0 // Step 4: Cuerpo superior - pecho y alas
-1 14 0 -56 -20 1 0 0 0 1 0 0 0 1 3003.dat
-1 14 40 -56 -20 1 0 0 0 1 0 0 0 1 3003.dat
-1 14 -20 -56 -20 1 0 0 0 1 0 0 0 1 3004.dat
-1 14 80 -56 -20 1 0 0 0 1 0 0 0 1 3004.dat
+0 // Step 4: Cuerpo superior - empieza a estrecharse
+1 14 40 -56 40 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 40 -56 80 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 -20 -56 60 1 0 0 0 1 0 0 0 1 3004.dat
+1 14 100 -56 60 1 0 0 0 1 0 0 0 1 3004.dat
+1 14 40 -56 110 1 0 0 0 1 0 0 0 1 3004.dat
 
 0 STEP
-0 // Step 5: Cabeza amarilla
-1 14 20 -80 -20 1 0 0 0 1 0 0 0 1 3003.dat
-1 14 20 -80 -60 1 0 0 0 1 0 0 0 1 3003.dat
+0 // Step 5: Lomo y cola - se estrecha arriba, cola sube
+1 14 40 -80 60 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 40 -80 100 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 40 -80 20 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 40 -80 140 1 0 0 0 1 0 0 0 1 3039.dat
 
 0 STEP
-0 // Step 6: Ojos negros y pico naranja
-1 0 20 -104 -10 1 0 0 0 1 0 0 0 1 3005.dat
-1 0 40 -104 -10 1 0 0 0 1 0 0 0 1 3005.dat
-1 25 20 -80 0 1 0 0 0 1 0 0 0 1 3004.dat
-1 14 20 -104 -30 1 0 0 0 1 0 0 0 1 3004.dat
+0 // Step 6: Cuello - columna amarilla que sube del pecho
+1 14 40 -104 20 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 40 -104 -10 1 0 0 0 1 0 0 0 1 3004.dat
+
+0 STEP
+0 // Step 7: Cabeza redonda - mas ancha que el cuello
+1 14 40 -128 10 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 40 -128 -30 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 0 -128 -10 1 0 0 0 1 0 0 0 1 3005.dat
+1 14 80 -128 -10 1 0 0 0 1 0 0 0 1 3005.dat
+
+0 STEP
+0 // Step 8: Ojos, pico naranja y coronilla
+1 0 30 -152 -10 1 0 0 0 1 0 0 0 1 3005.dat
+1 0 50 -152 -10 1 0 0 0 1 0 0 0 1 3005.dat
+1 25 40 -128 -60 1 0 0 0 1 0 0 0 1 3023.dat
+1 25 40 -136 -60 1 0 0 0 1 0 0 0 1 3023.dat
+1 14 40 -152 10 1 0 0 0 1 0 0 0 1 3004.dat
+1 14 40 -152 -30 1 0 0 0 1 0 0 0 1 3004.dat
 
 0 NOFILE`;
 
   const totalParts = parts.reduce((s, p) => s + p.quantity, 0);
   const steps: BuildStep[] = [
-    { stepNumber: 1, description: 'Coloca las patas naranjas (2 placas 2x2)', parts: [parts[5]] },
-    { stepNumber: 2, description: 'Base del cuerpo amarillo (2 bricks 2x4)', parts: [parts[1]] },
-    { stepNumber: 3, description: 'Cuerpo medio - barriga del pato', parts: [parts[0], parts[1]] },
-    { stepNumber: 4, description: 'Parte superior y alas laterales', parts: [parts[0], parts[2]] },
-    { stepNumber: 5, description: 'Cabeza del pato (2 bricks 2x2)', parts: [parts[0]] },
-    { stepNumber: 6, description: 'Añade ojos negros y pico naranja', parts: [parts[3], parts[4]] },
+    { stepNumber: 1, description: 'Base naranja: 4 placas formando las patas', parts: [parts[5], parts[6]] },
+    { stepNumber: 2, description: 'Barriga inferior: cuerpo ancho amarillo', parts: [parts[0], parts[1]] },
+    { stepNumber: 3, description: 'Cuerpo medio con alas que sobresalen', parts: [parts[0], parts[1], parts[2]] },
+    { stepNumber: 4, description: 'Cuerpo superior: se estrecha hacia arriba', parts: [parts[0], parts[2]] },
+    { stepNumber: 5, description: 'Lomo y cola: la cola sube con una pendiente', parts: [parts[0], parts[1], parts[8]] },
+    { stepNumber: 6, description: 'Cuello: columna que sube del pecho', parts: [parts[1], parts[2]] },
+    { stepNumber: 7, description: 'Cabeza redonda: más ancha que el cuello', parts: [parts[1], parts[3]] },
+    { stepNumber: 8, description: 'Ojos negros, pico naranja y coronilla', parts: [parts[4], parts[7], parts[2]] },
   ];
 
   return {
     id: 'demo-duck',
     name: 'Pato LEGO',
-    description: 'Un simpático pato amarillo con pico naranja',
+    description: 'Un simpático pato amarillo con pico naranja y alas',
     totalParts,
     estimatedPrice: +(totalParts * 0.15).toFixed(2),
     ldrawContent: ldraw,
