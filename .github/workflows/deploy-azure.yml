@@ -27,7 +27,7 @@ jobs:
       - name: Create deployment package
         run: |
           # Prepare standalone deployment
-          cp -r public .next/standalone/public
+          cp -r public .next/standalone/public 2>/dev/null || mkdir -p .next/standalone/public
           cp -r .next/static .next/standalone/.next/static
           cd .next/standalone
           zip -r ../../deploy.zip .
