@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:static": "mv src/app/api src/app/_api_tmp && GITHUB_PAGES=true next build && mv src/app/_api_tmp src/app/api",
     "start": "next start",
     "lint": "next lint"
   },

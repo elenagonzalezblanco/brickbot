@@ -29,6 +29,43 @@ seguido de un resumen JSON del modelo en formato:
   "style": "realistic|stylized|mosaic|sculpture"
 }`;
 
+// Smart demo responses when no backend (GitHub Pages static deploy)
+const DEMO_RESPONSES = [
+  `¡Me encanta tu idea! 🧱✨ Déjame pensar en cómo traducir eso a piezas LEGO...
+
+Algunas preguntas para afinar el diseño:
+- 🎨 ¿Tienes colores preferidos?
+- 📐 ¿Prefieres un estilo realista o más estilizado/cartoon?
+- 🏗️ ¿Quieres que tenga detalles interiores o solo exterior?
+
+¡Cuéntame más y lo diseñamos juntos!`,
+
+  `¡Genial! Con esos detalles ya tengo una buena idea 🎨
+
+Estoy pensando en un diseño con:
+- Base de **8x8 studs** aprox.
+- Colores principales: rojo, blanco y azul
+- Alrededor de **80-120 piezas**
+- Complejidad media, perfecto para construir en 30 min
+
+¿Te parece bien? Si quieres, pulsa **"Generar modelo demo"** en la barra superior para ver un ejemplo de cómo queda el visor 3D con instrucciones paso a paso. 🧊`,
+
+  `¡Perfecto! Creo que ya tengo suficiente para crear tu modelo 🚀
+
+Voy a generar:
+- 📋 Instrucciones paso a paso
+- 🧊 Modelo 3D interactivo
+- 📦 Lista de piezas con colores
+- 🛒 Dónde comprar cada pieza
+
+Pulsa el botón **"Generar modelo demo"** arriba para ver el resultado. En la versión completa con la API de OpenAI, esto se generaría automáticamente basado en nuestra conversación.
+
+[READY_TO_GENERATE]
+{"name": "Modelo personalizado", "description": "Diseño basado en tu idea", "estimatedParts": 80, "colors": ["Red", "White", "Blue"], "style": "stylized"}`,
+];
+
+let demoResponseIndex = 0;
+
 export async function getChatCompletion(
   messages: ChatMessage[],
   config: ProjectConfig
@@ -63,16 +100,25 @@ CONFIGURACIÓN DEL USUARIO:
     }),
   ];
 
-  const response = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: apiMessages }),
-  });
+  // Try the real API first, fall back to demo mode for static deploys
+  try {
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: apiMessages }),
+    });
 
-  if (!response.ok) {
-    throw new Error('Error al comunicarse con el asistente');
+    if (response.ok) {
+      const data = await response.json();
+      return data.content;
+    }
+  } catch {
+    // API not available (static deploy) - use demo responses
   }
 
-  const data = await response.json();
-  return data.content;
+  // Demo fallback
+  await new Promise((r) => setTimeout(r, 1000 + Math.random() * 1500));
+  const resp = DEMO_RESPONSES[demoResponseIndex % DEMO_RESPONSES.length];
+  demoResponseIndex++;
+  return resp;
 }
