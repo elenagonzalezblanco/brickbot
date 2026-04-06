@@ -1,13 +1,17 @@
 // ── Azure OpenAI shared config & helpers ──
-// Supports both API key auth and Azure AD (Entra ID) bearer token auth.
-// Token auth is used when AZURE_OPENAI_API_KEY is not set but
-// AZURE_OPENAI_TOKEN is provided (e.g. from `az account get-access-token`).
+// Auth priority:
+// 1. API key (AZURE_OPENAI_API_KEY)
+// 2. Static token (AZURE_OPENAI_TOKEN) — from dev:azure script
+// 3. @azure/identity DefaultAzureCredential — auto-acquires tokens
+//    (uses az login locally, managed identity on Azure, env vars on Vercel)
+
+import { DefaultAzureCredential } from '@azure/identity';
 
 export function getAzureConfig() {
   return {
     endpoint: (process.env.AZURE_OPENAI_ENDPOINT || '').replace(/\/+$/, ''),
     apiKey: process.env.AZURE_OPENAI_API_KEY || '',
-    token: process.env.AZURE_OPENAI_TOKEN || '',
+    staticToken: process.env.AZURE_OPENAI_TOKEN || '',
     textModel: process.env.AZURE_TEXT_MODEL || 'gpt-5.4',
     imageModel: process.env.AZURE_IMAGE_MODEL || 'gpt-image-1.5',
     apiVersion: process.env.AZURE_API_VERSION || '2025-01-01-preview',
@@ -16,19 +20,46 @@ export function getAzureConfig() {
 
 export type AzureConfig = ReturnType<typeof getAzureConfig>;
 
-export function isAzureConfigured(config: AzureConfig): boolean {
-  if (!config.endpoint) return false;
-  // Need either an API key or a bearer token
-  if (config.apiKey && config.apiKey !== 'PEGA-AQUI-TU-API-KEY') return true;
-  if (config.token) return true;
-  return false;
+// ── Token cache ──
+let cachedToken: string | null = null;
+let tokenExpiry = 0;
+
+async function getToken(config: AzureConfig): Promise<string> {
+  // 1. API key — use directly as api-key header
+  if (config.apiKey) return '';
+
+  // 2. Static token from env
+  if (config.staticToken) return config.staticToken;
+
+  // 3. Auto-acquire via DefaultAzureCredential (cached for 50 min)
+  const now = Date.now();
+  if (cachedToken && now < tokenExpiry) return cachedToken;
+
+  try {
+    const credential = new DefaultAzureCredential();
+    const tokenResponse = await credential.getToken('https://cognitiveservices.azure.com/.default');
+    cachedToken = tokenResponse.token;
+    // Cache until 5 min before expiry
+    tokenExpiry = tokenResponse.expiresOnTimestamp - 5 * 60 * 1000;
+    console.log('[Azure] Token acquired, expires in', Math.round((tokenExpiry - now) / 60000), 'min');
+    return cachedToken;
+  } catch (err: any) {
+    console.error('[Azure] Failed to acquire token:', err.message);
+    throw new Error('Azure auth failed. Run "az login" or set AZURE_OPENAI_TOKEN.');
+  }
 }
 
-function getAuthHeaders(config: AzureConfig): Record<string, string> {
-  if (config.token) {
-    return { Authorization: `Bearer ${config.token}` };
+export async function isAzureConfigured(config: AzureConfig): Promise<boolean> {
+  if (!config.endpoint) return false;
+  if (config.apiKey) return true;
+  if (config.staticToken) return true;
+  // Try DefaultAzureCredential
+  try {
+    await getToken(config);
+    return true;
+  } catch {
+    return false;
   }
-  return { 'api-key': config.apiKey };
 }
 
 export async function callAzureChat(
@@ -39,6 +70,11 @@ export async function callAzureChat(
 ) {
   const url = `${config.endpoint}/openai/deployments/${model}/chat/completions?api-version=${config.apiVersion}`;
 
+  const token = await getToken(config);
+  const authHeaders: Record<string, string> = config.apiKey
+    ? { 'api-key': config.apiKey }
+    : { Authorization: `Bearer ${token}` };
+
   const body: any = {
     messages,
     temperature: options.temperature ?? 0.8,
@@ -48,7 +84,7 @@ export async function callAzureChat(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...getAuthHeaders(config),
+      ...authHeaders,
     },
     body: JSON.stringify(body),
   });

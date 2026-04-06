@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     const config = getAzureConfig();
 
-    if (!isAzureConfigured(config)) {
+    if (!(await isAzureConfigured(config))) {
       return NextResponse.json({
         content: `¡Interesante idea! 🧱 Azure OpenAI no está conectado todavía.
 

@@ -2,7 +2,7 @@
 const isGHPages = process.env.GITHUB_PAGES === 'true';
 
 const nextConfig = {
-  output: isGHPages ? 'export' : undefined,
+  output: isGHPages ? 'export' : 'standalone',
   basePath: isGHPages ? '/brickbot' : '',
   assetPrefix: isGHPages ? '/brickbot/' : '',
   trailingSlash: true,

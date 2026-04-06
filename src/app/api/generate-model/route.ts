@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       .join(' ');
 
     // If Azure not configured or no messages, fall back to demo
-    if (!isAzureConfigured(config) || !messages || messages.length === 0) {
+    if (!(await isAzureConfigured(config)) || !messages || messages.length === 0) {
       console.log('[BrickBot] Azure not configured, returning demo model');
       const model = generateDemoModel(conversationText);
       return NextResponse.json({ model });
