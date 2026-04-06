@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const isGHPages = process.env.GITHUB_PAGES === 'true';
+const isAzureSWA = process.env.AZURE_SWA === 'true';
 
 const nextConfig = {
-  output: isGHPages ? 'export' : 'standalone',
+  output: isGHPages ? 'export' : (isAzureSWA ? undefined : 'standalone'),
   basePath: isGHPages ? '/brickbot' : '',
   assetPrefix: isGHPages ? '/brickbot/' : '',
   trailingSlash: true,
