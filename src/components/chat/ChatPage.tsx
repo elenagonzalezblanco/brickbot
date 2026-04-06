@@ -152,7 +152,7 @@ ${projectConfig.budget ? `- 💰 Presupuesto: **€${projectConfig.budget}**` : 
           className="px-4 py-2 bg-lego-green text-white text-sm font-semibold rounded-xl hover:bg-green-700 transition-colors flex items-center gap-2"
         >
           <Sparkles className="w-4 h-4" />
-          Generar modelo demo
+          Generar modelo 3D
         </button>
       </header>
 

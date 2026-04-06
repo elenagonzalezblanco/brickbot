@@ -16,10 +16,31 @@ const loadingMessages = [
   '✨ Puliendo los detalles finales...',
 ];
 
+async function generateModelFromChat(messages: any[]): Promise<any> {
+  // Try the real API
+  try {
+    const response = await fetch('/api/generate-model', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.model) return data.model;
+    }
+  } catch {
+    // API not available (static deploy) — fall through to demo
+  }
+
+  // Fallback to demo
+  return generateDemoModel();
+}
+
 export default function GeneratingScreen() {
   const [messageIndex, setMessageIndex] = useState(0);
   const [progress, setProgress] = useState(0);
-  const { setGeneratedModel, setCurrentStep } = useAppStore();
+  const { messages, setGeneratedModel, setCurrentStep } = useAppStore();
 
   useEffect(() => {
     const msgInterval = setInterval(() => {
@@ -28,24 +49,42 @@ export default function GeneratingScreen() {
 
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
-        if (prev >= 100) return 100;
-        return prev + Math.random() * 8 + 2;
+        if (prev >= 95) return 95; // stay at 95 until real response
+        return prev + Math.random() * 5 + 1;
       });
-    }, 400);
+    }, 600);
 
-    // Simulate model generation (in production, this calls the real API)
-    const timeout = setTimeout(() => {
-      const model = generateDemoModel();
-      setGeneratedModel(model);
-      setCurrentStep('viewer');
-    }, 8000);
+    // Prepare messages for the API (same format as openai.ts sends)
+    const apiMessages = messages.map((msg) => {
+      if (msg.images && msg.images.length > 0) {
+        return {
+          role: msg.role,
+          content: [
+            { type: 'text' as const, text: msg.content },
+            ...msg.images.map((img: string) => ({
+              type: 'image_url' as const,
+              image_url: { url: img.startsWith('data:') ? img : `data:image/jpeg;base64,${img}` },
+            })),
+          ],
+        };
+      }
+      return { role: msg.role, content: msg.content };
+    });
+
+    // Call the generate-model API with conversation context
+    generateModelFromChat(apiMessages).then((model) => {
+      setProgress(100);
+      setTimeout(() => {
+        setGeneratedModel(model);
+        setCurrentStep('viewer');
+      }, 500);
+    });
 
     return () => {
       clearInterval(msgInterval);
       clearInterval(progressInterval);
-      clearTimeout(timeout);
     };
-  }, [setGeneratedModel, setCurrentStep]);
+  }, [messages, setGeneratedModel, setCurrentStep]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-lego-yellow/10 via-white to-lego-blue/10 flex items-center justify-center">
