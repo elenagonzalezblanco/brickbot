@@ -69,7 +69,7 @@ export interface SourcingSuggestion {
 
 export interface AppState {
   // Flow state
-  currentStep: 'landing' | 'config' | 'chat' | 'generating' | 'viewer';
+  currentStep: 'landing' | 'config' | 'chat' | 'generating' | 'viewer' | 'mosaic';
   
   // Config
   projectConfig: ProjectConfig;

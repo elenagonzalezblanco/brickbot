@@ -6,6 +6,7 @@ import ConfigPanel from '@/components/layout/ConfigPanel';
 import ChatPage from '@/components/chat/ChatPage';
 import ViewerPage from '@/components/viewer/ViewerPage';
 import GeneratingScreen from '@/components/layout/GeneratingScreen';
+import MosaicPage from '@/components/mosaic/MosaicPage';
 
 export default function Home() {
   const currentStep = useAppStore((s) => s.currentStep);
@@ -21,6 +22,8 @@ export default function Home() {
       return <GeneratingScreen />;
     case 'viewer':
       return <ViewerPage />;
+    case 'mosaic':
+      return <MosaicPage />;
     default:
       return <LandingPage />;
   }

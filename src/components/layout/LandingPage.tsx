@@ -1,7 +1,7 @@
 'use client';
 
 import { useAppStore } from '@/lib/store';
-import { Blocks, Sparkles, Image, MessageCircle, Box, ArrowRight } from 'lucide-react';
+import { Blocks, Sparkles, Image, MessageCircle, Box, ArrowRight, Grid3X3 } from 'lucide-react';
 
 export default function LandingPage() {
   const setCurrentStep = useAppStore((s) => s.setCurrentStep);
@@ -61,28 +61,41 @@ export default function LandingPage() {
               ¡Empezar a crear!
               <ArrowRight className="w-5 h-5" />
             </button>
+            <button
+              onClick={() => setCurrentStep('mosaic')}
+              className="brick-button bg-purple-600 text-white text-lg font-bold px-10 py-4 rounded-2xl flex items-center justify-center gap-3 hover:bg-purple-700 transition-colors"
+            >
+              <Grid3X3 className="w-6 h-6" />
+              Image2Lego (Mosaico)
+            </button>
           </div>
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
           <FeatureCard
             icon={<MessageCircle className="w-8 h-8" />}
             color="bg-lego-blue"
             title="Chat con IA"
-            description="Describe con texto lo que quieres crear. Nuestro asistente te guiará paso a paso para concretar tu idea perfecta."
+            description="Describe con texto lo que quieres crear. Nuestro asistente te guiará paso a paso."
           />
           <FeatureCard
             icon={<Image className="w-8 h-8" />}
             color="bg-lego-green"
             title="Sube imágenes"
-            description="¿Tienes una foto de referencia? Súbela y la IA la transformará en una construcción LEGO realizable."
+            description="¿Tienes una foto? Súbela y la IA la transformará en una construcción LEGO."
+          />
+          <FeatureCard
+            icon={<Grid3X3 className="w-8 h-8" />}
+            color="bg-purple-600"
+            title="Image2Lego"
+            description="Convierte cualquier imagen en un mosaico LEGO pixel-art con instrucciones de construcción."
           />
           <FeatureCard
             icon={<Box className="w-8 h-8" />}
             color="bg-lego-orange"
-            title="Visor 3D interactivo"
-            description="Visualiza tu modelo en 3D, sigue instrucciones paso a paso y obtén la lista exacta de piezas."
+            title="Exporta a editores"
+            description="Descarga en LDraw y abre en LeoCad, LDCad o Mecabricks para editar con piezas reales."
           />
         </div>
 
@@ -112,7 +125,7 @@ export default function LandingPage() {
         <div className="mt-20 text-center">
           <p className="text-sm text-gray-400 mb-4">Tecnologías que hacen esto posible</p>
           <div className="flex flex-wrap justify-center gap-3">
-            {['LDraw', 'Three.js', 'GPT-4 Vision', 'Rebrickable', 'BrickLink', 'Mecabricks'].map(
+            {['LDraw', 'Three.js', 'Azure OpenAI', 'Image2Lego', 'Mecabricks', 'LeoCad', 'LDCad', 'BrickLink', 'Rebrickable'].map(
               (tech) => (
                 <span
                   key={tech}

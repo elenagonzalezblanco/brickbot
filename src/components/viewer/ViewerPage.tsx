@@ -13,8 +13,10 @@ import {
   Eye,
   Download,
   ExternalLink,
+  Share2,
 } from 'lucide-react';
 import LegoViewer3D from './LegoViewer3D';
+import ExportPanel from './ExportPanel';
 import { generateBrickLinkWantedList } from '@/lib/bricklink';
 
 type Tab = 'viewer' | 'parts' | 'sourcing';
@@ -23,6 +25,7 @@ export default function ViewerPage() {
   const { generatedModel, currentBuildStep, setCurrentBuildStep, setCurrentStep, reset } =
     useAppStore();
   const [activeTab, setActiveTab] = useState<Tab>('viewer');
+  const [showExport, setShowExport] = useState(false);
 
   if (!generatedModel) {
     return (
@@ -70,6 +73,13 @@ export default function ViewerPage() {
           </p>
         </div>
         <button
+          onClick={() => setShowExport(true)}
+          className="p-2 hover:bg-gray-100 rounded-xl text-lego-blue"
+          title="Exportar para LeoCad, LDCad, Mecabricks"
+        >
+          <Share2 className="w-5 h-5" />
+        </button>
+        <button
           onClick={() => { reset(); setCurrentStep('landing'); }}
           className="p-2 hover:bg-gray-100 rounded-xl text-gray-400"
           title="Nuevo proyecto"
@@ -77,6 +87,11 @@ export default function ViewerPage() {
           <RotateCcw className="w-5 h-5" />
         </button>
       </header>
+
+      {/* Export panel modal */}
+      {showExport && generatedModel && (
+        <ExportPanel model={generatedModel} onClose={() => setShowExport(false)} />
+      )}
 
       {/* Tab bar */}
       <div className="px-4 py-2 bg-white border-b border-gray-100 flex gap-2 shrink-0">
