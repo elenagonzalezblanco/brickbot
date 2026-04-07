@@ -102,6 +102,7 @@ export function generateDemoModel(conversationHint?: string): LegoModel {
   if (hint.match(/árbol|arbol|tree|planta|flor/)) return generateTreeModel();
   if (hint.match(/perro|dog|gato|cat|animal|mascota/)) return generateDogModel();
   if (hint.match(/avión|avion|plane|cohete|rocket|nave/)) return generateRocketModel();
+  if (hint.match(/barco|ship|pirata|bote|velero|boat|galeon|galeón/)) return generateShipModel();
   
   // Default: house
   return generateHouseModel();
@@ -602,6 +603,111 @@ function generateRocketModel(): LegoModel {
     id: 'demo-rocket',
     name: 'Cohete LEGO',
     description: 'Un cohete espacial blanco con alerones rojos',
+    totalParts,
+    estimatedPrice: +(totalParts * 0.15).toFixed(2),
+    ldrawContent: ldraw,
+    steps,
+    partsList: parts,
+    sourcingSuggestions: makeSourcing(totalParts),
+  };
+}
+
+// ── SHIP MODEL ──
+function generateShipModel(): LegoModel {
+  const parts: LegoPart[] = [
+    { partNum: '3001', name: 'Brick 2x4', colorId: 6, colorName: 'Brown', colorHex: '583927', quantity: 8, imageUrl: '' },
+    { partNum: '3003', name: 'Brick 2x2', colorId: 6, colorName: 'Brown', colorHex: '583927', quantity: 6, imageUrl: '' },
+    { partNum: '3004', name: 'Brick 1x2', colorId: 6, colorName: 'Brown', colorHex: '583927', quantity: 4, imageUrl: '' },
+    { partNum: '3010', name: 'Brick 1x4', colorId: 6, colorName: 'Brown', colorHex: '583927', quantity: 4, imageUrl: '' },
+    { partNum: '3005', name: 'Brick 1x1', colorId: 6, colorName: 'Brown', colorHex: '583927', quantity: 4, imageUrl: '' },
+    { partNum: '3020', name: 'Plate 2x4', colorId: 6, colorName: 'Brown', colorHex: '583927', quantity: 4, imageUrl: '' },
+    { partNum: '3003', name: 'Brick 2x2', colorId: 15, colorName: 'White', colorHex: 'FFFFFF', quantity: 4, imageUrl: '' },
+    { partNum: '3039', name: 'Slope 2x2/45°', colorId: 6, colorName: 'Brown', colorHex: '583927', quantity: 2, imageUrl: '' },
+    { partNum: '3005', name: 'Brick 1x1', colorId: 0, colorName: 'Black', colorHex: '05131D', quantity: 2, imageUrl: '' },
+    { partNum: '3004', name: 'Brick 1x2', colorId: 4, colorName: 'Red', colorHex: 'C91A09', quantity: 2, imageUrl: '' },
+    { partNum: '3022', name: 'Plate 2x2', colorId: 14, colorName: 'Yellow', colorHex: 'F2CD37', quantity: 2, imageUrl: '' },
+  ];
+
+  const ldraw = `0 FILE Barco_Pirata_LEGO.ldr
+0 Barco Pirata LEGO - BrickBot
+0 Name: Barco_Pirata_LEGO.ldr
+0 Author: BrickBot AI
+
+0 STEP
+0 // Step 1: Quilla - base del barco
+1 6 40 0 0 1 0 0 0 1 0 0 0 1 3020.dat
+1 6 40 0 -40 1 0 0 0 1 0 0 0 1 3020.dat
+1 6 120 0 0 1 0 0 0 1 0 0 0 1 3020.dat
+1 6 120 0 -40 1 0 0 0 1 0 0 0 1 3020.dat
+
+0 STEP
+0 // Step 2: Casco inferior - paredes del barco
+1 6 0 -24 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 6 80 -24 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 6 0 -24 -40 1 0 0 0 1 0 0 0 1 3001.dat
+1 6 80 -24 -40 1 0 0 0 1 0 0 0 1 3001.dat
+
+0 STEP
+0 // Step 3: Casco superior con proa y popa
+1 6 0 -48 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 6 80 -48 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 6 0 -48 -40 1 0 0 0 1 0 0 0 1 3001.dat
+1 6 80 -48 -40 1 0 0 0 1 0 0 0 1 3001.dat
+1 6 160 -48 -10 0 0 1 0 1 0 -1 0 0 3039.dat
+1 6 -30 -48 -10 0 0 -1 0 1 0 1 0 0 3039.dat
+
+0 STEP
+0 // Step 4: Cubierta con barandilla
+1 6 20 -48 -20 1 0 0 0 1 0 0 0 1 3010.dat
+1 6 100 -48 -20 1 0 0 0 1 0 0 0 1 3010.dat
+1 6 0 -72 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 6 140 -72 0 1 0 0 0 1 0 0 0 1 3004.dat
+1 6 0 -72 -40 1 0 0 0 1 0 0 0 1 3004.dat
+1 6 140 -72 -40 1 0 0 0 1 0 0 0 1 3004.dat
+
+0 STEP
+0 // Step 5: Cabina del capitan
+1 6 100 -72 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 6 100 -96 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 6 100 -96 -30 1 0 0 0 1 0 0 0 1 3003.dat
+1 14 100 -120 -20 1 0 0 0 1 0 0 0 1 3022.dat
+
+0 STEP
+0 // Step 6: Mastil y velas blancas
+1 0 60 -72 -20 1 0 0 0 1 0 0 0 1 3005.dat
+1 0 60 -96 -20 1 0 0 0 1 0 0 0 1 3005.dat
+1 6 60 -120 -20 1 0 0 0 1 0 0 0 1 3005.dat
+1 6 60 -144 -20 1 0 0 0 1 0 0 0 1 3005.dat
+1 15 40 -96 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 15 40 -120 -20 1 0 0 0 1 0 0 0 1 3003.dat
+1 15 40 -144 -20 1 0 0 0 1 0 0 0 1 3003.dat
+
+0 STEP
+0 // Step 7: Bandera pirata y detalles
+1 4 60 -168 -20 1 0 0 0 1 0 0 0 1 3004.dat
+1 4 60 -168 -10 1 0 0 0 1 0 0 0 1 3004.dat
+1 14 20 -72 -20 1 0 0 0 1 0 0 0 1 3022.dat
+1 15 20 -72 -10 1 0 0 0 1 0 0 0 1 3003.dat
+1 6 20 -48 -10 1 0 0 0 1 0 0 0 1 3010.dat
+1 6 100 -48 -10 1 0 0 0 1 0 0 0 1 3010.dat
+
+0 NOFILE`;
+
+  const totalParts = parts.reduce((s, p) => s + p.quantity, 0);
+  const steps: BuildStep[] = [
+    { stepNumber: 1, description: 'Quilla: base plana del barco (4 placas)', parts: [parts[5]] },
+    { stepNumber: 2, description: 'Casco inferior: paredes del barco', parts: [parts[0]] },
+    { stepNumber: 3, description: 'Casco superior con proa y popa inclinadas', parts: [parts[0], parts[7]] },
+    { stepNumber: 4, description: 'Cubierta con barandilla lateral', parts: [parts[3], parts[2]] },
+    { stepNumber: 5, description: 'Cabina del capitán en la popa', parts: [parts[1], parts[10]] },
+    { stepNumber: 6, description: 'Mástil alto con velas blancas', parts: [parts[4], parts[6]] },
+    { stepNumber: 7, description: 'Bandera pirata roja y detalles finales', parts: [parts[9], parts[10], parts[6]] },
+  ];
+
+  return {
+    id: 'demo-ship',
+    name: 'Barco Pirata LEGO',
+    description: 'Un barco pirata marrón con velas blancas y bandera roja',
     totalParts,
     estimatedPrice: +(totalParts * 0.15).toFixed(2),
     ldrawContent: ldraw,

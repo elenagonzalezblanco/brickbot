@@ -98,7 +98,8 @@ function buildLDrawFromSteps(name: string, steps: any[]): string {
     lines.push(`0 // Step ${step.stepNumber}: ${step.description}`);
     if (step.bricks && Array.isArray(step.bricks)) {
       for (const b of step.bricks) {
-        lines.push(`1 ${b.color} ${b.x} ${b.y} ${b.z} 1 0 0 0 1 0 0 0 1 ${b.part}`);
+        // AI uses positive Y up; LDraw uses negative Y up → negate
+        lines.push(`1 ${b.color} ${b.x} ${-b.y} ${b.z} 1 0 0 0 1 0 0 0 1 ${b.part}`);
       }
     }
   }
@@ -219,9 +220,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ model });
   } catch (error: any) {
     console.error('Generate model API error:', error);
-    // Fall back to demo model on any error
-    console.log('[BrickBot] Falling back to demo model');
+    console.log('[BrickBot] Falling back to demo model. Error:', error?.message || 'unknown');
     const model = generateDemoModel(conversationText);
-    return NextResponse.json({ model });
+    return NextResponse.json({
+      model,
+      warning: `AI generation failed: ${error?.message || 'unknown error'}. Using demo model instead.`,
+    });
   }
 }

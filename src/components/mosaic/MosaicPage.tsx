@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { ArrowLeft, Upload, Image as ImageIcon, Blocks, Zap, Grid3X3 } from 'lucide-react';
+import { ArrowLeft, Upload, Image as ImageIcon, Blocks, Zap, Grid3X3, Box, Layers } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
-import { imageToLegoMosaic, renderMosaicPreview, type MosaicResult } from '@/lib/image2lego';
+import { imageToLegoMosaic, renderMosaicPreview, type MosaicResult, type MosaicMode } from '@/lib/image2lego';
 
 type MosaicStep = 'upload' | 'configure' | 'preview';
 
@@ -13,10 +13,22 @@ export default function MosaicPage() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [mosaicWidth, setMosaicWidth] = useState(32);
   const [mosaicHeight, setMosaicHeight] = useState(32);
+  const [mosaicMode, setMosaicMode_] = useState<MosaicMode>('2d');
+  const [maxHeight, setMaxHeight] = useState(6);
+  const [invertHeight, setInvertHeight] = useState(false); // false = dark areas tall (default)
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState<MosaicResult | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Clamp size when switching to 3D (max 48 to keep piece count manageable)
+  const setMosaicMode = (m: MosaicMode) => {
+    setMosaicMode_(m);
+    if (m === '3d') {
+      if (mosaicWidth > 48) setMosaicWidth(48);
+      if (mosaicHeight > 48) setMosaicHeight(48);
+    }
+  };
 
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) return;
@@ -42,6 +54,9 @@ export default function MosaicPage() {
         width: mosaicWidth,
         height: mosaicHeight,
         useAllColors: true,
+        mode: mosaicMode,
+        maxHeight: mosaicMode === '3d' ? maxHeight : undefined,
+        invertHeight: mosaicMode === '3d' ? invertHeight : undefined,
       });
       setResult(mosaicResult);
       setStep('preview');
@@ -83,7 +98,7 @@ export default function MosaicPage() {
           </div>
           <div>
             <span className="text-xl font-bold">Image2Lego</span>
-            <span className="text-xs text-gray-400 ml-2">Convierte imágenes en mosaicos LEGO</span>
+            <span className="text-xs text-gray-400 ml-2">Convierte imágenes en mosaicos y relieves LEGO</span>
           </div>
         </div>
       </header>
@@ -94,7 +109,7 @@ export default function MosaicPage() {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold mb-2">Convierte tu imagen en LEGO</h1>
-              <p className="text-gray-500">Sube una foto y la transformaremos en un mosaico LEGO con instrucciones de construcción</p>
+              <p className="text-gray-500">Sube una foto y la transformaremos en un mosaico o relieve 3D LEGO con instrucciones de construcción</p>
             </div>
 
             <div
@@ -147,6 +162,37 @@ export default function MosaicPage() {
               />
             </div>
 
+            {/* Mode toggle */}
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-4">
+              <h3 className="text-sm font-bold">Modo de generación</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setMosaicMode('2d')}
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${
+                    mosaicMode === '2d'
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <Grid3X3 className={`w-6 h-6 mb-2 ${mosaicMode === '2d' ? 'text-purple-600' : 'text-gray-400'}`} />
+                  <div className="font-semibold text-sm">2D Mosaico</div>
+                  <div className="text-xs text-gray-400 mt-1">Plano, como un cuadro</div>
+                </button>
+                <button
+                  onClick={() => setMosaicMode('3d')}
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${
+                    mosaicMode === '3d'
+                      ? 'border-purple-500 bg-purple-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <Layers className={`w-6 h-6 mb-2 ${mosaicMode === '3d' ? 'text-purple-600' : 'text-gray-400'}`} />
+                  <div className="font-semibold text-sm">3D Relieve</div>
+                  <div className="text-xs text-gray-400 mt-1">Escultura con altura</div>
+                </button>
+              </div>
+            </div>
+
             {/* Size controls */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-5">
               <div>
@@ -157,7 +203,7 @@ export default function MosaicPage() {
                 <input
                   type="range"
                   min={16}
-                  max={96}
+                  max={mosaicMode === '3d' ? 48 : 96}
                   step={8}
                   value={mosaicWidth}
                   onChange={(e) => setMosaicWidth(parseInt(e.target.value))}
@@ -172,7 +218,7 @@ export default function MosaicPage() {
                 <input
                   type="range"
                   min={16}
-                  max={96}
+                  max={mosaicMode === '3d' ? 48 : 96}
                   step={8}
                   value={mosaicHeight}
                   onChange={(e) => setMosaicHeight(parseInt(e.target.value))}
@@ -180,24 +226,67 @@ export default function MosaicPage() {
                 />
               </div>
 
+              {/* 3D-specific options */}
+              {mosaicMode === '3d' && (
+                <>
+                  <div className="pt-3 border-t border-gray-100">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-semibold">Altura máxima: {maxHeight} capas</label>
+                      <span className="text-xs text-gray-400">{(maxHeight * 0.96).toFixed(1)} cm</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={3}
+                      max={16}
+                      step={1}
+                      value={maxHeight}
+                      onChange={(e) => setMaxHeight(parseInt(e.target.value))}
+                      className="w-full accent-purple-600"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-semibold">Invertir relieve</div>
+                      <div className="text-xs text-gray-400">{invertHeight ? 'Claro = más alto' : 'Oscuro = más alto (resalta la imagen)'}</div>
+                    </div>
+                    <button
+                      onClick={() => setInvertHeight(!invertHeight)}
+                      className={`w-12 h-7 rounded-full transition-colors relative ${
+                        invertHeight ? 'bg-purple-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 bg-white rounded-full absolute top-1 transition-transform ${
+                        invertHeight ? 'translate-x-6' : 'translate-x-1'
+                      }`} />
+                    </button>
+                  </div>
+                </>
+              )}
+
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-gray-100">
+              <div className={`grid ${mosaicMode === '3d' ? 'grid-cols-2' : 'grid-cols-3'} gap-3 pt-3 border-t border-gray-100`}>
                 <div className="text-center">
-                  <div className="text-lg font-bold text-purple-600">{mosaicWidth * mosaicHeight}</div>
-                  <div className="text-xs text-gray-400">Piezas totales</div>
+                  <div className="text-lg font-bold text-purple-600">
+                    {mosaicMode === '3d'
+                      ? `~${Math.round(mosaicWidth * mosaicHeight * (1 + (maxHeight - 1) / 2))}`
+                      : mosaicWidth * mosaicHeight}
+                  </div>
+                  <div className="text-xs text-gray-400">Piezas estimadas</div>
                 </div>
                 <div className="text-center">
                   <div className="text-lg font-bold text-purple-600">
-                    {(mosaicWidth * 0.8).toFixed(0)}×{(mosaicHeight * 0.8).toFixed(0)} cm
+                    {(mosaicWidth * 0.8).toFixed(0)}×{(mosaicHeight * 0.8).toFixed(0)}{mosaicMode === '3d' ? `×${(maxHeight * 0.96).toFixed(0)}` : ''} cm
                   </div>
                   <div className="text-xs text-gray-400">Tamaño real</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-purple-600">
-                    ~€{(mosaicWidth * mosaicHeight * 0.08).toFixed(0)}
+                {mosaicMode === '2d' && (
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-purple-600">
+                      ~€{(mosaicWidth * mosaicHeight * 0.08).toFixed(0)}
+                    </div>
+                    <div className="text-xs text-gray-400">Coste estimado</div>
                   </div>
-                  <div className="text-xs text-gray-400">Coste estimado</div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -221,7 +310,7 @@ export default function MosaicPage() {
                 ) : (
                   <>
                     <Zap className="w-5 h-5" />
-                    Generar mosaico
+                    Generar {mosaicMode === '3d' ? 'relieve 3D' : 'mosaico'}
                   </>
                 )}
               </button>
@@ -233,9 +322,12 @@ export default function MosaicPage() {
         {step === 'preview' && result && (
           <div className="space-y-6">
             <div className="text-center mb-4">
-              <h2 className="text-2xl font-bold mb-1">¡Tu mosaico LEGO está listo!</h2>
+              <h2 className="text-2xl font-bold mb-1">
+                {result.mode === '3d' ? '¡Tu relieve 3D LEGO está listo!' : '¡Tu mosaico LEGO está listo!'}
+              </h2>
               <p className="text-sm text-gray-400">
                 {result.studsWide}×{result.studsTall} studs · {result.model.totalParts} piezas · {result.model.partsList.length} colores
+                {result.mode === '3d' && ` · ${maxHeight} capas`}
               </p>
             </div>
 

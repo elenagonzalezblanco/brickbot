@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import type { LegoModel } from '@/types';
 import { generatePackedMPD, generateLDrawFile, getMecabricksImportInfo, getLeoCadInfo, getLDCadInfo } from '@/lib/ldraw-packed';
-import { Download, ExternalLink, X, FileBox, Wrench, Palette } from 'lucide-react';
+import { generateInstructionsPDF } from '@/lib/instructions-pdf';
+import { Download, ExternalLink, X, FileBox, Wrench, Palette, BookOpen } from 'lucide-react';
 
 interface ExportPanelProps {
   model: LegoModel;
@@ -12,6 +13,7 @@ interface ExportPanelProps {
 
 export default function ExportPanel({ model, onClose }: ExportPanelProps) {
   const [downloaded, setDownloaded] = useState<string | null>(null);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
 
   const downloadFile = (content: string, filename: string, mime: string = 'text/plain') => {
     const blob = new Blob([content], { type: mime });
@@ -32,6 +34,19 @@ export default function ExportPanel({ model, onClose }: ExportPanelProps) {
   const handleDownloadMPD = () => {
     const mpd = generatePackedMPD(model.name, model.ldrawContent);
     downloadFile(mpd, `${sanitize(model.name)}_packed.mpd`);
+  };
+
+  const handleDownloadPDF = async () => {
+    setGeneratingPDF(true);
+    try {
+      await generateInstructionsPDF(model);
+      setDownloaded('instrucciones.pdf');
+      setTimeout(() => setDownloaded(null), 3000);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+    } finally {
+      setGeneratingPDF(false);
+    }
   };
 
   const mecabricks = getMecabricksImportInfo();
@@ -86,6 +101,25 @@ export default function ExportPanel({ model, onClose }: ExportPanelProps) {
                   <div className="text-xs text-gray-400">Incluye geometría de piezas - compatible con más editores</div>
                 </div>
                 <Download className="w-5 h-5 text-gray-400" />
+              </button>
+
+              <button
+                onClick={handleDownloadPDF}
+                disabled={generatingPDF}
+                className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-red-50 to-orange-50 hover:from-red-100 hover:to-orange-100 rounded-xl transition-colors text-left border border-red-100"
+              >
+                <div className="w-10 h-10 bg-lego-red rounded-lg flex items-center justify-center shrink-0">
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-sm">Instrucciones de montaje (.pdf)</div>
+                  <div className="text-xs text-gray-400">Libro de instrucciones paso a paso estilo LEGO con diagramas isométricos</div>
+                </div>
+                {generatingPDF ? (
+                  <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                ) : (
+                  <Download className="w-5 h-5 text-red-400" />
+                )}
               </button>
             </div>
           </div>

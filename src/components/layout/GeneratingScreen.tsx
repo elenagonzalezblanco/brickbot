@@ -33,10 +33,15 @@ async function generateModelFromChat(messages: any[], config?: any): Promise<any
 
     if (response.ok) {
       const data = await response.json();
+      if (data.warning) {
+        console.warn('[BrickBot]', data.warning);
+      }
       if (data.model) return data.model;
+    } else {
+      console.error('[BrickBot] API returned', response.status, response.statusText);
     }
-  } catch {
-    // API not available (static deploy) — fall through to demo
+  } catch (err) {
+    console.warn('[BrickBot] API not available (static deploy), using demo model');
   }
 
   // Fallback to demo - pick model based on conversation keywords
